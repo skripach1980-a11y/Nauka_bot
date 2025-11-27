@@ -51,11 +51,7 @@ import feedparser
 # ========== СОЗДАЕМ FLASK ПРИЛОЖЕНИЕ ==========
 app = Flask(__name__)
 
-# ========== КОНФИГУРАЦИЯ ==========
-BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
-TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-
-# КЛЮЧЕВЫЕ СЛОВА
+# ========== КОНФИГУРАЦИЯ =====# КЛЮЧЕВЫЕ СЛОВА
 KEYWORDS = {
     'en': [
         'ufo', 'uap', 'alien', 'extraterrestrial', 'flying saucer', 'unidentified',
@@ -67,53 +63,57 @@ KEYWORDS = {
         'discovery', 'research', 'study', 'scientists', 'astronomers',
         'medical', 'medicine', 'health', 'virus', 'vaccine', 'treatment', 'cancer',
         'therapy', 'drug', 'pharmaceutical', 'biotech', 'genetic', 'DNA', 'RNA',
-        'epidemic', 'pandemic', 'outbreak', 'clinical trial', 'surgery', 'diagnosis'
+        'epidemic', 'pandemic', 'outbreak', 'clinical trial', 'surgery', 'diagnosis',
+        # Ukraine war keywords
+        'ukraine', 'russia', 'war', 'invasion', 'conflict', 'kyiv', 'donbas', 'attack', 'defense', 'military'
     ],
     'de': [
         'ufo', 'außerirdisch', 'unidentifiziert', 'komet', 'asteroid', 'meteor',
         '3I/ATLAS', '3I/ATLAS Komet', 'raum', 'weltraum', 'sichtung', 'seltsam', 'rätsel', 'phänomen', 'wissenschaft',
         'medizin', 'gesundheit', 'virus', 'impfstoff', 'behandlung', 'krebs',
-        'therapie', 'arzneimittel', 'pharmazeutisch', 'biotech', 'genetisch'
+        'therapie', 'arzneimittel', 'pharmazeutisch', 'biotech', 'genetisch',
+        # Ukraine war keywords
+        'ukraine', 'russland', 'krieg', 'invasion', 'konflikt', 'kiew', 'donbas', 'angriff', 'verteidigung', 'militär'
     ],
     'fr': [
         'ovni', 'extraterrestre', 'non identifié', 'comète', 'astéroïde', 'météore',
         '3I/ATLAS', 'comète 3I/ATLAS', 'espace', 'observation', 'étrange', 'mystère', 'phénomène', 'science',
         'médical', 'médecine', 'santé', 'virus', 'vaccin', 'traitement', 'cancer',
-        'thérapie', 'médicament', 'pharmaceutique', 'biotech', 'génétique'
+        'thérapie', 'médicament', 'pharmaceutique', 'biotech', 'génétique',
+        # Ukraine war keywords
+        'ukraine', 'russie', 'guerre', 'invasion', 'conflit', 'kiev', 'donbass', 'attaque', 'défense', 'militaire'
     ],
     'es': [
         'ovni', 'extraterrestre', 'no identificado', 'cometa', 'asteroide', 'meteoro',
         '3I/ATLAS', 'cometa 3I/ATLAS', 'espacio', 'avistamiento', 'extraño', 'misterio', 'fenómeno', 'ciencia',
         'médico', 'medicina', 'salud', 'virus', 'vacuna', 'tratamiento', 'cáncer',
-        'terapia', 'medicamento', 'farmacéutico', 'biotech', 'genético'
+        'terapia', 'medicamento', 'farmacéutico', 'biotech', 'genético',
+        # Ukraine war keywords
+        'ucrania', 'rusia', 'guerra', 'invasión', 'conflicto', 'kiev', 'donbas', 'ataque', 'defensa', 'militar'
     ],
     'pt': [
         'ovni', 'extraterrestre', 'não identificado', 'cometa', 'asteroide', 'meteoro',
         '3I/ATLAS', 'cometa 3I/ATLAS', 'espaço', 'avistamento', 'estranho', 'mistério', 'fenômeno', 'ciencia',
         'médico', 'medicina', 'saúde', 'vírus', 'vacuna', 'tratamiento', 'câncer',
-        'terapia', 'medicamento', 'farmacêutico', 'biotech', 'genético'
+        'terapia', 'medicamento', 'farmacêutico', 'biotech', 'genético',
+        # Ukraine war keywords
+        'ucrânia', 'rússia', 'guerra', 'invasão', 'conflito', 'kiev', 'donbas', 'ataque', 'defesa', 'militar'
     ],
     'ru': [
         'нло', 'пришелец', 'инопланетянин', 'неопознанный', 'комета', 'астероид',
         '3I/ATLAS', 'комета 3I/ATLAS', 'метеор', 'космос', 'космический', 'аномалия', 'загадочный', 'необъяснимый',
         'наука', 'открытие', 'исследование',
         'медицина', 'медицинский', 'здоровье', 'вирус', 'вакцина', 'лечение', 'рак',
-        'терапия', 'лекарство', 'фармацевтический', 'биотех', 'генетический'
+        'терапия', 'лекарство', 'фармацевтический', 'биотех', 'генетический',
+        # Ukraine war keywords
+        'украина', 'украины', 'украине', 'украину', 'россия', 'россии', 'россию', 
+        'война', 'конфликт', 'киев', 'донбасс', 'атака', 'оборона', 'военный'
     ]
-}
+}=====
+BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
+TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-# РАБОЧИЕ ИСТОЧНИКИ (без проблемных)
-NEWS_SOURCES = {
-    'NASA News': {'url': 'https://www.nasa.gov/rss/dyn/breaking_news.rss', 'lang': 'en'},
-    'The Guardian Science': {'url': 'https://www.theguardian.com/science/rss', 'lang': 'en'},
-    'New Scientist Space': {'url': 'https://www.newscientist.com/subject/space/feed/', 'lang': 'en'},
-    'Astronomy Magazine': {'url': 'https://www.astronomy.com/feed', 'lang': 'en'},
-    'Universe Today': {'url': 'https://www.universetoday.com/feed/', 'lang': 'en'},
-    'Phys.org': {'url': 'https://phys.org/rss-feed/breaking/', 'lang': 'en'},
-    'Der Spiegel Wissenschaft': {'url': 'https://www.spiegel.de/wissenschaft/index.rss', 'lang': 'de'},
-    'Le Monde Science': {'url': 'https://www.lemonde.fr/sciences/rss_full.xml', 'lang': 'fr'},
-    'Folha de S.Paulo Ciência': {'url': 'https://feeds.folha.uol.com.br/ciencia/rss091.xml', 'lang': 'pt'},
-}
+
 
 # Настройка логирования
 logging.basicConfig(
