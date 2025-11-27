@@ -112,8 +112,8 @@ KEYWORDS = {
     ]
 }
 
-# РАБОЧИЕ ИСТОЧНИКИ (без проблемных)
 NEWS_SOURCES = {
+    # Существующие научные источники
     'NASA News': {'url': 'https://www.nasa.gov/rss/dyn/breaking_news.rss', 'lang': 'en'},
     'The Guardian Science': {'url': 'https://www.theguardian.com/science/rss', 'lang': 'en'},
     'New Scientist Space': {'url': 'https://www.newscientist.com/subject/space/feed/', 'lang': 'en'},
@@ -123,6 +123,17 @@ NEWS_SOURCES = {
     'Der Spiegel Wissenschaft': {'url': 'https://www.spiegel.de/wissenschaft/index.rss', 'lang': 'de'},
     'Le Monde Science': {'url': 'https://www.lemonde.fr/sciences/rss_full.xml', 'lang': 'fr'},
     'Folha de S.Paulo Ciência': {'url': 'https://feeds.folha.uol.com.br/ciencia/rss091.xml', 'lang': 'pt'},
+    
+    # ДОБАВИТЬ НОВОСТНЫЕ ИСТОЧНИКИ:
+    'BBC News': {'url': 'https://feeds.bbci.co.uk/news/rss.xml', 'lang': 'en'},
+    'Reuters World News': {'url': 'https://www.reutersagency.com/feed/?best-topics=world&post_type=best', 'lang': 'en'},
+    'CNN World': {'url': 'http://rss.cnn.com/rss/edition.rss', 'lang': 'en'},
+    'The Guardian World': {'url': 'https://www.theguardian.com/world/rss', 'lang': 'en'},
+    'DW News English': {'url': 'https://rss.dw.com/rdf/rss-en-all', 'lang': 'en'},
+    'France 24 English': {'url': 'https://www.france24.com/en/rss', 'lang': 'en'},
+    'Al Jazeera English': {'url': 'https://www.aljazeera.com/xml/rss/all.xml', 'lang': 'en'},
+    'РИА Новости': {'url': 'https://ria.ru/export/rss2/index.xml', 'lang': 'ru'},
+    'Интерфакс': {'url': 'https://www.interfax.ru/rss.asp', 'lang': 'ru'},
 }
 BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
 TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
