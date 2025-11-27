@@ -1,3 +1,22 @@
+# FIX FOR PYTHON 3.13 - CGI MODULE REMOVED
+import sys
+import html
+from urllib.parse import parse_qs
+
+# Create stub for removed cgi module
+class CgiStub:
+    @staticmethod
+    def parse_qs(query_string, keep_blank_values=0, strict_parsing=0):
+        return parse_qs(query_string, keep_blank_values=bool(keep_blank_values), 
+                       strict_parsing=bool(strict_parsing))
+    
+    @staticmethod
+    def escape(s, quote=None):
+        return html.escape(s, quote=quote)
+
+# Replace cgi module before any imports
+sys.modules['cgi'] = CgiStub()
+
 import logging
 import sqlite3
 import requests
@@ -7,28 +26,10 @@ import random
 import hashlib
 from datetime import datetime, timedelta
 import threading
-import html
-from urllib.parse import quote
 import concurrent.futures
 import os
 from flask import Flask
 import feedparser
-
-# ОБХОД ДЛЯ МОДУЛЯ CGI (который удален в Python 3.13)
-import sys
-from urllib.parse import parse_qs
-
-# Создаем заглушку для модуля cgi
-class CgiStub:
-    def parse_qs(self, query_string, keep_blank_values=0, strict_parsing=0):
-        return parse_qs(query_string, keep_blank_values=keep_blank_values, strict_parsing=strict_parsing)
-    
-    def escape(self, s, quote=None):
-        import html
-        return html.escape(s, quote=quote)
-
-# Подменяем модуль cgi
-sys.modules['cgi'] = CgiStub()
 
 # ========== СОЗДАЕМ FLASK ПРИЛОЖЕНИЕ ==========
 app = Flask(__name__)
@@ -37,7 +38,7 @@ app = Flask(__name__)
 BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
 TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-# КЛЮЧЕВЫЕ СЛОВА - ОБНОВЛЕННЫЕ С МЕДИЦИНОЙ И 3I/ATLAS
+# КЛЮЧЕВЫЕ СЛОВА
 KEYWORDS = {
     'en': [
         'ufo', 'uap', 'alien', 'extraterrestrial', 'flying saucer', 'unidentified',
@@ -47,7 +48,6 @@ KEYWORDS = {
         'artifact', 'lost civilization', 'space', 'NASA', 'astronomy', 'celestial',
         'planet', 'mars', 'moon', 'solar system', 'galaxy', 'universe', 'science',
         'discovery', 'research', 'study', 'scientists', 'astronomers',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
         'medical', 'medicine', 'health', 'virus', 'vaccine', 'treatment', 'cancer',
         'therapy', 'drug', 'pharmaceutical', 'biotech', 'genetic', 'DNA', 'RNA',
         'epidemic', 'pandemic', 'outbreak', 'clinical trial', 'surgery', 'diagnosis'
@@ -55,42 +55,37 @@ KEYWORDS = {
     'de': [
         'ufo', 'außerirdisch', 'unidentifiziert', 'komet', 'asteroid', 'meteor',
         '3I/ATLAS', '3I/ATLAS Komet', 'raum', 'weltraum', 'sichtung', 'seltsam', 'rätsel', 'phänomen', 'wissenschaft',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
         'medizin', 'gesundheit', 'virus', 'impfstoff', 'behandlung', 'krebs',
         'therapie', 'arzneimittel', 'pharmazeutisch', 'biotech', 'genetisch'
     ],
     'fr': [
         'ovni', 'extraterrestre', 'non identifié', 'comète', 'astéroïde', 'météore',
         '3I/ATLAS', 'comète 3I/ATLAS', 'espace', 'observation', 'étrange', 'mystère', 'phénomène', 'science',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
         'médical', 'médecine', 'santé', 'virus', 'vaccin', 'traitement', 'cancer',
         'thérapie', 'médicament', 'pharmaceutique', 'biotech', 'génétique'
     ],
     'es': [
         'ovni', 'extraterrestre', 'no identificado', 'cometa', 'asteroide', 'meteoro',
         '3I/ATLAS', 'cometa 3I/ATLAS', 'espacio', 'avistamiento', 'extraño', 'misterio', 'fenómeno', 'ciencia',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
         'médico', 'medicina', 'salud', 'virus', 'vacuna', 'tratamiento', 'cáncer',
         'terapia', 'medicamento', 'farmacéutico', 'biotech', 'genético'
     ],
     'pt': [
         'ovni', 'extraterrestre', 'não identificado', 'cometa', 'asteroide', 'meteoro',
         '3I/ATLAS', 'cometa 3I/ATLAS', 'espaço', 'avistamento', 'estranho', 'mistério', 'fenômeno', 'ciencia',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
-        'médico', 'medicina', 'saúde', 'vírus', 'vacina', 'tratamento', 'câncer',
+        'médico', 'medicina', 'saúde', 'vírus', 'vacuna', 'tratamiento', 'câncer',
         'terapia', 'medicamento', 'farmacêutico', 'biotech', 'genético'
     ],
     'ru': [
         'нло', 'пришелец', 'инопланетянин', 'неопознанный', 'комета', 'астероид',
         '3I/ATLAS', 'комета 3I/ATLAS', 'метеор', 'космос', 'космический', 'аномалия', 'загадочный', 'необъяснимый',
         'наука', 'открытие', 'исследование',
-        # МЕДИЦИНСКИЕ КЛЮЧЕВЫЕ СЛОВА
         'медицина', 'медицинский', 'здоровье', 'вирус', 'вакцина', 'лечение', 'рак',
         'терапия', 'лекарство', 'фармацевтический', 'биотех', 'генетический'
     ]
 }
 
-# РАБОЧИЕ ИСТОЧНИКИ (исправленная версия)
+# РАБОЧИЕ ИСТОЧНИКИ (без проблемных)
 NEWS_SOURCES = {
     'NASA News': {'url': 'https://www.nasa.gov/rss/dyn/breaking_news.rss', 'lang': 'en'},
     'The Guardian Science': {'url': 'https://www.theguardian.com/science/rss', 'lang': 'en'},
@@ -101,10 +96,6 @@ NEWS_SOURCES = {
     'Der Spiegel Wissenschaft': {'url': 'https://www.spiegel.de/wissenschaft/index.rss', 'lang': 'de'},
     'Le Monde Science': {'url': 'https://www.lemonde.fr/sciences/rss_full.xml', 'lang': 'fr'},
     'Folha de S.Paulo Ciência': {'url': 'https://feeds.folha.uol.com.br/ciencia/rss091.xml', 'lang': 'pt'},
-    # ВРЕМЕННО УБРАТЬ ПРОБЛЕМНЫЕ ИСТОЧНИКИ:
-    # 'Science Alert': {'url': 'https://www.sciencealert.com/feed', 'lang': 'en'},
-    # 'Space.com': {'url': 'https://www.space.com/feeds/all', 'lang': 'en'},
-    # 'Science et Vie': {'url': 'https://www.science-et-vie.com/feed', 'lang': 'fr'},
 }
 
 # Настройка логирования
@@ -257,7 +248,7 @@ def fetch_news_from_source(source_name, source_info):
         
         logger.debug(f"🔍 Проверяем источник: {source_name} ({rss_url})")
         
-        # ИСПРАВЛЕННАЯ ЧАСТЬ - используем feedparser напрямую
+        # Парсим RSS через feedparser
         feed = feedparser.parse(rss_url)
         
         total_entries = len(feed.entries) if hasattr(feed, 'entries') else 0
@@ -374,7 +365,7 @@ def search_strange_news():
     logger.info(f"🌐 Уникальные новости по языкам: {lang_stats}")
     logger.info(f"✅ Найдено {len(unique_news)} уникальных неповторяющихся новостей")
     
-    return unique_news  # ВОЗВРАЩАЕМ ВСЕ НОВОСТИ БЕЗ ОГРАНИЧЕНИЙ
+    return unique_news
 
 def translate_text(text, src_lang):
     """Переводим текст на русский"""
