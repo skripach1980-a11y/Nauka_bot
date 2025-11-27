@@ -52,6 +52,7 @@ import feedparser
 app = Flask(__name__)
 
 # ========== КОНФИГУРАЦИЯ =====# КЛЮЧЕВЫЕ СЛОВА
+# КЛЮЧЕВЫЕ СЛОВА
 KEYWORDS = {
     'en': [
         'ufo', 'uap', 'alien', 'extraterrestrial', 'flying saucer', 'unidentified',
@@ -85,7 +86,7 @@ KEYWORDS = {
     ],
     'es': [
         'ovni', 'extraterrestre', 'no identificado', 'cometa', 'asteroide', 'meteoro',
-        '3I/ATLAS', 'cometa 3I/ATLAS', 'espacio', 'avistamiento', 'extraño', 'misterio', 'fenómeno', 'ciencia',
+        '3I/ATLAS', 'cometa 3I/ATLAS', 'espacio', 'avistamiento', 'extraño', 'mystério', 'fenómeno', 'ciencia',
         'médico', 'medicina', 'salud', 'virus', 'vacuna', 'tratamiento', 'cáncer',
         'terapia', 'medicamento', 'farmacéutico', 'biotech', 'genético',
         # Ukraine war keywords
@@ -109,6 +110,19 @@ KEYWORDS = {
         'украина', 'украины', 'украине', 'украину', 'россия', 'россии', 'россию', 
         'война', 'конфликт', 'киев', 'донбасс', 'атака', 'оборона', 'военный'
     ]
+}
+
+# РАБОЧИЕ ИСТОЧНИКИ (без проблемных)
+NEWS_SOURCES = {
+    'NASA News': {'url': 'https://www.nasa.gov/rss/dyn/breaking_news.rss', 'lang': 'en'},
+    'The Guardian Science': {'url': 'https://www.theguardian.com/science/rss', 'lang': 'en'},
+    'New Scientist Space': {'url': 'https://www.newscientist.com/subject/space/feed/', 'lang': 'en'},
+    'Astronomy Magazine': {'url': 'https://www.astronomy.com/feed', 'lang': 'en'},
+    'Universe Today': {'url': 'https://www.universetoday.com/feed/', 'lang': 'en'},
+    'Phys.org': {'url': 'https://phys.org/rss-feed/breaking/', 'lang': 'en'},
+    'Der Spiegel Wissenschaft': {'url': 'https://www.spiegel.de/wissenschaft/index.rss', 'lang': 'de'},
+    'Le Monde Science': {'url': 'https://www.lemonde.fr/sciences/rss_full.xml', 'lang': 'fr'},
+    'Folha de S.Paulo Ciência': {'url': 'https://feeds.folha.uol.com.br/ciencia/rss091.xml', 'lang': 'pt'},
 }
 BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
 TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
