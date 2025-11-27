@@ -1,9 +1,11 @@
 # FIX FOR PYTHON 3.13 - CGI MODULE REMOVED
 import sys
 import html
+import email
 from urllib.parse import parse_qs
+from email.message import Message
 
-# Create stub for removed cgi module
+# Create complete stub for removed cgi module
 class CgiStub:
     @staticmethod
     def parse_qs(query_string, keep_blank_values=0, strict_parsing=0):
@@ -13,6 +15,21 @@ class CgiStub:
     @staticmethod
     def escape(s, quote=None):
         return html.escape(s, quote=quote)
+    
+    @staticmethod
+    def parse_header(line):
+        """Parse a Content-type like header."""
+        if not line:
+            return '', {}
+        parts = line.split(';', 1)
+        content_type = parts[0].strip().lower()
+        params = {}
+        if len(parts) > 1:
+            for param in parts[1].split(';'):
+                if '=' in param:
+                    key, value = param.split('=', 1)
+                    params[key.strip()] = value.strip(' "')
+        return content_type, params
 
 # Replace cgi module before any imports
 sys.modules['cgi'] = CgiStub()
