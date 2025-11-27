@@ -261,7 +261,7 @@ def is_strange_news(title, description, lang):
     text = f"{title} {description or ''}".lower()
     
     # ТОЛЬКО самые важные исключения
-    exclude_words = ['election', 'president', 'trump', 'biden', 'war', 'covid', 'coronavirus']
+    exclude_words = ['election', 'president', 'trump', 'biden', 'covid', 'coronavirus']
     if any(word in text for word in exclude_words):
         return False
     
