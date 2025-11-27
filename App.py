@@ -109,7 +109,7 @@ KEYWORDS = {
         'украина', 'украины', 'украине', 'украину', 'россия', 'россии', 'россию', 
         'война', 'конфликт', 'киев', 'донбасс', 'атака', 'оборона', 'военный'
     ]
-}=====
+}
 BOT_TOKEN = os.environ.get('BOT_TOKEN', "8292008037:AAEKFdmn3fXIWkPKnwkdwgHD8AIgOCfn2oQ")
 TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
