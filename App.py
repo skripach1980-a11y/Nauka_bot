@@ -14,6 +14,22 @@ import os
 from flask import Flask
 import feedparser
 
+# ОБХОД ДЛЯ МОДУЛЯ CGI (который удален в Python 3.13)
+import sys
+from urllib.parse import parse_qs
+
+# Создаем заглушку для модуля cgi
+class CgiStub:
+    def parse_qs(self, query_string, keep_blank_values=0, strict_parsing=0):
+        return parse_qs(query_string, keep_blank_values=keep_blank_values, strict_parsing=strict_parsing)
+    
+    def escape(self, s, quote=None):
+        import html
+        return html.escape(s, quote=quote)
+
+# Подменяем модуль cgi
+sys.modules['cgi'] = CgiStub()
+
 # ========== СОЗДАЕМ FLASK ПРИЛОЖЕНИЕ ==========
 app = Flask(__name__)
 
@@ -74,20 +90,21 @@ KEYWORDS = {
     ]
 }
 
-# РАБОЧИЕ ИСТОЧНИКИ
+# РАБОЧИЕ ИСТОЧНИКИ (исправленная версия)
 NEWS_SOURCES = {
     'NASA News': {'url': 'https://www.nasa.gov/rss/dyn/breaking_news.rss', 'lang': 'en'},
-    'Space.com': {'url': 'https://www.space.com/feeds/all', 'lang': 'en'},
     'The Guardian Science': {'url': 'https://www.theguardian.com/science/rss', 'lang': 'en'},
     'New Scientist Space': {'url': 'https://www.newscientist.com/subject/space/feed/', 'lang': 'en'},
-    'Science Alert': {'url': 'https://www.sciencealert.com/feed', 'lang': 'en'},
     'Astronomy Magazine': {'url': 'https://www.astronomy.com/feed', 'lang': 'en'},
     'Universe Today': {'url': 'https://www.universetoday.com/feed/', 'lang': 'en'},
     'Phys.org': {'url': 'https://phys.org/rss-feed/breaking/', 'lang': 'en'},
     'Der Spiegel Wissenschaft': {'url': 'https://www.spiegel.de/wissenschaft/index.rss', 'lang': 'de'},
     'Le Monde Science': {'url': 'https://www.lemonde.fr/sciences/rss_full.xml', 'lang': 'fr'},
-    'Science et Vie': {'url': 'https://www.science-et-vie.com/feed', 'lang': 'fr'},
     'Folha de S.Paulo Ciência': {'url': 'https://feeds.folha.uol.com.br/ciencia/rss091.xml', 'lang': 'pt'},
+    # ВРЕМЕННО УБРАТЬ ПРОБЛЕМНЫЕ ИСТОЧНИКИ:
+    # 'Science Alert': {'url': 'https://www.sciencealert.com/feed', 'lang': 'en'},
+    # 'Space.com': {'url': 'https://www.space.com/feeds/all', 'lang': 'en'},
+    # 'Science et Vie': {'url': 'https://www.science-et-vie.com/feed', 'lang': 'fr'},
 }
 
 # Настройка логирования
