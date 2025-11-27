@@ -546,68 +546,101 @@ def handle_updates():
     except Exception as e:
         logger.error(f"❌ Ошибка в обработке updates: {e}")
 
-# ========== АВТОМАТИЧЕСКАЯ ЛЕНТА ==========
+# ========== ПРОБУЖДЕНИЕ СЕРВЕРА ==========
+def wake_up_server():
+    """Будим сервер перед обновлением новостей"""
+    try:
+        base_url = os.environ.get('RENDER_EXTERNAL_URL', 'https://nauka-bot-1.onrender.com')
+        
+        # Делаем несколько запросов для гарантированного пробуждения
+        for i in range(3):
+            try:
+                response = requests.get(f"{base_url}/health", timeout=30)
+                logger.info(f"🏓 Пробуждение {i+1}/3: {response.status_code}")
+                if response.status_code == 200:
+                    logger.info("✅ Сервер успешно пробужден")
+                    return True
+                time.sleep(10)
+            except Exception as e:
+                logger.warning(f"⚠️ Пробуждение {i+1}/3 не удалось: {e}")
+                time.sleep(10)
+        return False
+    except Exception as e:
+        logger.error(f"❌ Ошибка пробуждения сервера: {e}")
+        return False
+
+# ========== АВТОМАТИЧЕСКАЯ ЛЕНТА С ПРОБУЖДЕНИЕМ ==========
 def auto_news_feed():
-    """Автоматическое обновление ленты новостей каждые 30 минут"""
+    """Автоматическое обновление ленты с предварительным пробуждением сервера"""
     # Ждем 5 минут после запуска бота перед первым обновлением
     time.sleep(300)
     
-    # Счетчик циклов для логирования
     cycle_count = 0
     
     while True:
         try:
-            subscribers = get_subscribers()
-            if subscribers:
-                cycle_count += 1
-                logger.info(f"🕒 Авто-обновление #{cycle_count}: Запуск...")
-                
-                # Используем блокировку чтобы избежать одновременного поиска
-                if search_lock.acquire(blocking=False):
-                    try:
-                        news_items = search_strange_news()
-                        
-                        if news_items:
-                            new_count = 0
-                            
-                            # Отправляем только новые новости
-                            for article in news_items:
-                                # Финальная проверка перед отправкой
-                                if not is_news_published(article['content_hash']):
-                                    message = create_news_message(article)
-                                    
-                                    success_count = 0
-                                    for chat_id in subscribers:
-                                        if send_telegram_message(chat_id, message):
-                                            success_count += 1
-                                        time.sleep(0.3)
-                                    
-                                    if success_count > 0:
-                                        mark_news_as_published(article['url'], article['title'], article['source'], article['lang'], article['content_hash'])
-                                        new_count += 1
-                                        logger.info(f"✅ Новость опубликована: {article['title'][:50]}...")
-                                    time.sleep(2)
-                            
-                            if new_count > 0:
-                                logger.info(f"✅ В ленту добавлено {new_count} новостей")
-                                
-                                # Уведомляем подписчиков
-                                for chat_id in subscribers:
-                                    send_telegram_message(chat_id, f"🆕 *ОБНОВЛЕНИЕ ЛЕНТЫ*\nДобавлено {new_count} новых новостей!")
-                                    break  # Только первому подписчику
-                            else:
-                                logger.info("📭 Новых новостей для ленты нет")
-                        else:
-                            logger.info("🔍 Новостей для ленты не найдено")
-                            
-                    finally:
-                        search_lock.release()
-                else:
-                    logger.info("⏳ Пропускаем цикл - другой поиск уже выполняется")
+            cycle_count += 1
+            logger.info(f"🕒 Цикл авто-обновления #{cycle_count}")
             
-            # Ждем 30 минут до следующего обновления
-            logger.info("⏰ Следующее обновление через 30 минут...")
-            time.sleep(1800)  # 30 минут
+            # 🔄 ШАГ 1: Будим сервер за 3 минуты до обновления
+            logger.info("⏰ Будим сервер перед обновлением...")
+            if wake_up_server():
+                logger.info("😴 Ждем 3 минуты для полного пробуждения сервера...")
+                time.sleep(180)  # Ждем 3 минуты для полного пробуждения
+            else:
+                logger.warning("⚠️ Не удалось разбудить сервер, продолжаем...")
+            
+            # 🔄 ШАГ 2: Проверяем подписчиков
+            subscribers = get_subscribers()
+            if not subscribers:
+                logger.info("📭 Нет подписчиков, пропускаем обновление")
+                time.sleep(1500)  # 25 минут до следующей попытки
+                continue
+                
+            # 🔄 ШАГ 3: Запускаем поиск новостей
+            logger.info("🔍 Запускаем поиск новостей...")
+            
+            if search_lock.acquire(blocking=False):
+                try:
+                    news_items = search_strange_news()
+                    
+                    if news_items:
+                        new_count = 0
+                        
+                        for article in news_items:
+                            if not is_news_published(article['content_hash']):
+                                message = create_news_message(article)
+                                
+                                success_count = 0
+                                for chat_id in subscribers:
+                                    if send_telegram_message(chat_id, message):
+                                        success_count += 1
+                                    time.sleep(0.3)
+                                
+                                if success_count > 0:
+                                    mark_news_as_published(article['url'], article['title'], article['source'], article['lang'], article['content_hash'])
+                                    new_count += 1
+                                    logger.info(f"✅ Новость опубликована: {article['title'][:50]}...")
+                                time.sleep(2)
+                        
+                        if new_count > 0:
+                            logger.info(f"✅ В ленту добавлено {new_count} новостей")
+                            # Уведомляем только первого подписчика
+                            for chat_id in subscribers[:1]:
+                                send_telegram_message(chat_id, f"🆕 *ОБНОВЛЕНИЕ ЛЕНТЫ*\nДобавлено {new_count} новых новостей!")
+                        else:
+                            logger.info("📭 Новых новостей для ленты нет")
+                    else:
+                        logger.info("🔍 Новостей для ленты не найдено")
+                        
+                finally:
+                    search_lock.release()
+            else:
+                logger.info("⏳ Пропускаем цикл - другой поиск уже выполняется")
+            
+            # 🔄 ШАГ 4: Ждем 27 минут до следующего пробуждения
+            logger.info("💤 Ожидаем 27 минут до следующего обновления...")
+            time.sleep(1620)  # 27 минут
             
         except Exception as e:
             logger.error(f"❌ Ошибка в авто-обновлении ленты: {e}")
@@ -661,7 +694,7 @@ def initialize_bot():
     threading.Thread(target=updates_worker, daemon=True).start()
     
     logger.info(f"✅ Лента новостей запущена! {len(NEWS_SOURCES)} источников активны")
-    logger.info("⏰ Авто-обновление каждые 30 минут")
+    logger.info("⏰ Авто-обновление каждые 30 минут с пробуждением сервера")
     logger.info("🤖 Бот готов к работе - отправьте любое сообщение для подписки")
 
 def updates_worker():
